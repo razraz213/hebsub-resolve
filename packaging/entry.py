@@ -130,6 +130,37 @@ def remove_menu() -> int:
     return 0
 
 
+def transcribe_probe(argv) -> int:
+    """Transcribe a wav through the bundle and report the device actually used.
+
+    `--selftest` proves every library IMPORTS. It cannot prove the ASR RUNS,
+    and the difference is not academic: the first shipped build imported
+    ctranslate2 happily, then chose CUDA because the driver reports a device,
+    then died on `cublas64_12.dll is not found` the moment a real
+    transcription started. This is the check that would have caught it.
+
+        HebSub.exe --transcribe-probe path	oudio.wav
+    """
+    import time
+
+    wav = next((a for a in argv if a.lower().endswith(".wav")), None)
+    if wav is None or not Path(wav).exists():
+        print("usage: HebSub.exe --transcribe-probe <file.wav>")
+        return 2
+
+    from hebsub.engines.ivrit_local import IvritLocalEngine
+
+    engine = IvritLocalEngine()
+    start = time.time()
+    result = engine.transcribe(wav)
+    elapsed = time.time() - start
+    words = sum(len(s.get("words", [])) for s in result.get("segments", []))
+    print(f"device used : {engine.device} ({engine.compute_type})")
+    print(f"elapsed     : {elapsed:.1f}s")
+    print(f"words       : {words}")
+    return 0 if words else 1
+
+
 def selftest(data: Path) -> int:
     """Check the bundle from inside itself, and write what it found.
 
@@ -201,6 +232,8 @@ def main() -> int:
 
     if "--selftest" in sys.argv:
         return selftest(data)
+    if "--transcribe-probe" in sys.argv:
+        return transcribe_probe(sys.argv)
     if "--install-menu" in sys.argv:
         return install_menu()
     if "--remove-menu" in sys.argv:

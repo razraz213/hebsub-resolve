@@ -100,6 +100,21 @@ def disable_hf_symlinks() -> None:
     os.environ.setdefault("HF_HUB_DISABLE_SYMLINKS_WARNING", "1")
 
 
+# Substrings CTranslate2 and the CUDA loader use when the runtime libraries
+# are absent. Matched on text because neither raises a typed error -- both
+# surface a bare RuntimeError.
+_CUDA_LIB_MARKERS = (
+    "cublas", "cudnn", "cudart", "cuda runtime", "nvrtc",
+    "is not found or cannot be loaded", "no kernel image",
+)
+
+
+def _is_missing_cuda_library(exc: Exception) -> bool:
+    """Is this failure 'the GPU is there but its libraries are not'?"""
+    text = str(exc).lower()
+    return any(marker in text for marker in _CUDA_LIB_MARKERS)
+
+
 class IvritLocalEngine:
     """faster-whisper adapter. Returns raw engine output, unmapped."""
 
@@ -150,6 +165,40 @@ class IvritLocalEngine:
                 self.model_name, device=device, compute_type=compute
             )
         except Exception as exc:
+            # A PRESENT GPU IS NOT A USABLE GPU.
+            #
+            # `get_cuda_device_count()` asks the DRIVER how many devices
+            # exist. It says 1 on any machine with an NVIDIA card, whether or
+            # not the CUDA runtime libraries are installed -- and CTranslate2
+            # only discovers they are missing when it tries to load one:
+            #
+            #   Library cublas64_12.dll is not found or cannot be loaded
+            #
+            # That is exactly the frozen Windows build, which deliberately
+            # does not ship the 2 GB CUDA runtime. It picked cuda, then died.
+            # Falling back is right for every caller: a slower transcript beats
+            # no transcript, and the CPU path is 4.9x realtime against 11.7x.
+            if device == "cuda" and _is_missing_cuda_library(exc):
+                fallback = self._requested_compute or "int8"
+                print(
+                    f"transcribe: CUDA is present but its runtime libraries are "
+                    f"not ({exc}); falling back to CPU. Roughly 2.4x slower, "
+                    f"same transcript.",
+                    flush=True,
+                )
+                try:
+                    self._model = WhisperModel(
+                        self.model_name, device="cpu", compute_type=fallback
+                    )
+                    self.device, self.compute_type = "cpu", fallback
+                    return self._model
+                except Exception as cpu_exc:
+                    raise EngineError(
+                        f"transcribe: could not load model "
+                        f"{self.model_name!r} on cuda ({exc}) and the CPU "
+                        f"fallback also failed: {cpu_exc}"
+                    ) from cpu_exc
+
             hint = ""
             if "1314" in str(exc) or "privilege" in str(exc).lower():
                 # The cache is now half-written; a retry alone will not fix it.
@@ -175,8 +224,8 @@ class IvritLocalEngine:
         # transcribe strips mapping left-hand sides before we see them.
         initial_prompt = " ".join(vocab) if vocab else None
 
-        try:
-            segments, info = model.transcribe(
+        def run(active):
+            segments, info = active.transcribe(
                 wav_path,
                 language="he",          # never auto-detect: see module docstring
                 word_timestamps=True,
@@ -187,11 +236,45 @@ class IvritLocalEngine:
                 condition_on_previous_text=False,
                 initial_prompt=initial_prompt,
             )
-            segments = list(segments)   # generator: force the work inside the try
+            return list(segments), info  # generator: force the work inside
+
+        try:
+            segments, info = run(model)
         except Exception as exc:
-            raise EngineError(
-                f"transcribe: ivrit_local failed on {wav_path}: {exc}"
-            ) from exc
+            # THE CUDA FAILURE LANDS HERE, NOT AT MODEL CONSTRUCTION.
+            #
+            # `WhisperModel(device="cuda")` succeeds on any machine with an
+            # NVIDIA driver, because CTranslate2 loads cuBLAS lazily. The
+            # missing library only surfaces when the encoder first runs --
+            # deep inside this generator, at `model.encode(features)`:
+            #
+            #   Library cublas64_12.dll is not found or cannot be loaded
+            #
+            # Wrapping the constructor therefore catches nothing, which is
+            # exactly the mistake that shipped a broken installer. The retry
+            # has to live where the work happens.
+            if self.device == "cuda" and _is_missing_cuda_library(exc):
+                print(
+                    f"transcribe: CUDA is present but its runtime libraries "
+                    f"are not ({exc}); retrying on CPU. Roughly 2.4x slower, "
+                    f"same transcript.",
+                    flush=True,
+                )
+                self._model = None
+                self._requested_device = "cpu"
+                self._requested_compute = self._requested_compute or "int8"
+                try:
+                    segments, info = run(self._load())
+                except Exception as cpu_exc:
+                    raise EngineError(
+                        f"transcribe: ivrit_local failed on {wav_path} on "
+                        f"cuda ({exc}) and the CPU retry also failed: "
+                        f"{cpu_exc}"
+                    ) from cpu_exc
+            else:
+                raise EngineError(
+                    f"transcribe: ivrit_local failed on {wav_path}: {exc}"
+                ) from exc
 
         return {
             "engine": self.name,

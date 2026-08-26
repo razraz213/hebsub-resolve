@@ -185,3 +185,120 @@ class TestGereshFragments:
         _join_geresh_fragments(words)
         assert words[0]["w"] == "ג"
         assert words[0]["end"] == 1.2
+
+
+# --------------------------------------------------------------------------
+# a present GPU is not a usable GPU
+# --------------------------------------------------------------------------
+
+
+class TestCudaFallback:
+    """The frozen Windows build ships no CUDA runtime, on purpose.
+
+    `ctranslate2.get_cuda_device_count()` asks the DRIVER, so it reports a
+    device on any machine with an NVIDIA card whether or not the runtime
+    libraries exist. The installed app therefore chose cuda and died with
+    "Library cublas64_12.dll is not found or cannot be loaded" on the first
+    real transcription. A slower transcript beats no transcript.
+    """
+
+    def test_missing_cuda_libraries_are_recognised(self):
+        from hebsub.engines.ivrit_local import _is_missing_cuda_library
+
+        for message in (
+            "Library cublas64_12.dll is not found or cannot be loaded",
+            "Library cudnn_ops64_9.dll is not found or cannot be loaded",
+            "cudart64_12.dll missing",
+            "CUDA runtime error",
+        ):
+            assert _is_missing_cuda_library(RuntimeError(message)), message
+
+    def test_unrelated_failures_are_not_mistaken_for_it(self):
+        # The symlink-privilege failure (D-series, WinError 1314) must keep
+        # its own hint rather than being swallowed by a CPU retry.
+        from hebsub.engines.ivrit_local import _is_missing_cuda_library
+
+        for message in (
+            "[WinError 1314] A required privilege is not held by the client",
+            "No such file or directory",
+            "Connection reset by peer",
+        ):
+            assert not _is_missing_cuda_library(RuntimeError(message)), message
+
+    def test_it_falls_back_to_cpu_and_says_so(self, monkeypatch, capsys):
+        from hebsub.engines import ivrit_local
+
+        attempts = []
+
+        class FakeModel:
+            def __init__(self, name, device=None, compute_type=None):
+                attempts.append((device, compute_type))
+                if device == "cuda":
+                    raise RuntimeError(
+                        "Library cublas64_12.dll is not found or cannot be loaded"
+                    )
+
+        fake_ct2 = type("ct2", (), {"get_cuda_device_count": staticmethod(lambda: 1)})
+        monkeypatch.setitem(
+            __import__("sys").modules, "ctranslate2", fake_ct2)
+        monkeypatch.setitem(
+            __import__("sys").modules, "faster_whisper",
+            type("fw", (), {"WhisperModel": FakeModel}))
+
+        engine = ivrit_local.IvritLocalEngine(device="auto")
+        model = engine._load()
+
+        assert attempts == [("cuda", "float16"), ("cpu", "int8")]
+        assert engine.device == "cpu"
+        assert model is not None
+        assert "falling back to CPU" in capsys.readouterr().out
+
+    def test_the_failure_is_lazy_and_the_retry_still_catches_it(self, monkeypatch, capsys):
+        """The real bug: CUDA dies during INFERENCE, not at construction.
+
+        `WhisperModel(device="cuda")` succeeds on any machine with an NVIDIA
+        driver, because CTranslate2 loads cuBLAS lazily. The missing library
+        surfaces only when the encoder first runs -- inside the segment
+        generator. A fallback around the constructor catches nothing, and that
+        is precisely what shipped a broken installer.
+        """
+        from hebsub.engines import ivrit_local
+
+        built = []
+
+        class LazyModel:
+            def __init__(self, name, device=None, compute_type=None):
+                built.append(device)
+                self.device = device
+
+            def transcribe(self, wav, **kw):
+                def gen():
+                    if self.device == "cuda":
+                        raise RuntimeError(
+                            "Library cublas64_12.dll is not found or "
+                            "cannot be loaded"
+                        )
+                    yield type("Seg", (), {
+                        "start": 0.0, "end": 1.0, "text": "שלום",
+                        "words": [type("W", (), {
+                            "start": 0.0, "end": 1.0,
+                            "word": "שלום", "probability": 0.9})()],
+                    })()
+                return gen(), type("Info", (), {"language": "he", "language_probability": 0.99, "duration": 1.0})()
+
+        monkeypatch.setitem(
+            __import__("sys").modules, "ctranslate2",
+            type("ct2", (), {"get_cuda_device_count": staticmethod(lambda: 1)}))
+        monkeypatch.setitem(
+            __import__("sys").modules, "faster_whisper",
+            type("fw", (), {"WhisperModel": LazyModel}))
+
+        engine = ivrit_local.IvritLocalEngine(device="auto")
+        out = engine.transcribe("audio.wav")
+
+        # It tried cuda, then rebuilt on cpu and produced a real transcript.
+        assert built == ["cuda", "cpu"]
+        assert engine.device == "cpu"
+        assert out["segments"], "the CPU retry produced no segments"
+        assert "retrying on CPU" in capsys.readouterr().out
+

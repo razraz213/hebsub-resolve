@@ -206,6 +206,11 @@ _LOG = [
     (r"^(?:host_resolve: )?cannot import DaVinciResolveScript (.+)$",
      "לא נמצאו מודולי הסקריפטים של ריזולב \1"),
 
+    (r"^(?:transcribe: )?CUDA is present but its runtime libraries are not "
+     r"\((.+)\); retrying on CPU\..*$",
+     "הכרטיס הגרפי קיים אבל ספריות CUDA חסרות — עובר "
+     "למעבד. איטי פי 2.4 בערך, אותו תמלול"),
+
     (r"^connected · (.+)$",
      "מחובר · \\1"),
     (r"^project '(.+)', timeline '(.+)'$",
