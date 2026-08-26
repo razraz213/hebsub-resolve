@@ -49,3 +49,11 @@ desktop.ini
 # tests/fixtures/*.json          -- synthetic contract fixtures
 # glossary.txt                   -- measured, hand-filtered
 # Correct Subs all 9 reels.srt   -- the source the references were split from
+
+# --- Windows build ---------------------------------------------------------
+# packaging/build.py works in ../hebsub-build by default: a venv, an ffmpeg
+# download, the PyInstaller output and a 178 MB installer. None of it belongs
+# in git -- the installer ships as a release asset.
+packaging/build/
+packaging/dist/
+*.spec.bak

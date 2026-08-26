@@ -86,6 +86,31 @@ Clicking a row moves Resolve's playhead to that word.
 
 ## Install
 
+### Windows — one download, one click
+
+**[Download HebSub-4.0.0-Setup.exe](https://github.com/razraz213/hebsub-resolve/releases/latest)**  (178 MB)
+
+Run it. That is the whole install. It brings its own Python and its own
+ffmpeg, and it adds **HebSub** to Resolve's *Workflow › Scripts* menu for you.
+Nothing needs to be on `PATH` and nothing needs administrator rights — it
+installs per-user.
+
+Then, once, in Resolve: **Preferences › System › General › External scripting
+using → Local**. Resolve refuses all scripting until you do, and it is the one
+step no installer can perform.
+
+The speech model (~1.5 GB) downloads the first time you transcribe, into your
+HuggingFace cache, where a reinstall reuses it.
+
+If the panel does not open, **Start Menu › HebSub › HebSub — check
+installation** writes a report to `%LOCALAPPDATA%\HebSub\selftest.txt` naming
+the piece that failed.
+
+Windows will show a blue "Windows protected your PC" notice, because the
+installer is not code-signed yet — **More info › Run anyway**.
+
+### From source — Windows, macOS, Linux
+
 Requires Python 3.11+, `ffmpeg` on `PATH`, and DaVinci Resolve **Studio** —
 scripting is not available in the free edition.
 
@@ -161,6 +186,21 @@ recurring bill and this tool is meant to run without one.
 What did ship is the simple rule — both real words → flag only; exactly one a
 non-word → take the real one; neither real → change nothing. **6 fixed, 0
 broken.**
+
+## Building the installer
+
+```bash
+python packaging/build.py
+```
+
+Four stages, each skipped if already done: a build virtualenv with the **core**
+requirements only (whatever is in the ambient interpreter otherwise ends up
+inside the bundle), an LGPL ffmpeg, PyInstaller, then Inno Setup. Needs
+`winget install --id JRSoftware.InnoSetup`.
+
+The bundle is onedir rather than onefile on purpose — 591 MB re-extracted to a
+temp folder on every launch is tens of seconds of looking like a hang, and the
+installer makes it one download anyway.
 
 ## Design notes
 

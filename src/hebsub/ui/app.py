@@ -517,7 +517,7 @@ class Panel:
             project, timeline = host_resolve._current(resolve)
             target = host_resolve.seek(project, timeline, flag["start"])
         except Exception as exc:  # noqa: BLE001
-            self.say(str(exc), "bad")
+            self.say(translate_log(str(exc)), "bad")
             return
         self.var_status.set(rtl(f"{target}  —  {flag['heard']}"))
 
@@ -540,7 +540,7 @@ class Panel:
                 timeline, work / "final.srt", host_resolve.lexicon_path()
             )
         except Exception as exc:  # noqa: BLE001
-            self.say(str(exc), "bad")
+            self.say(translate_log(str(exc)), "bad")
             return
 
         if result["status"] == "no_srt":
@@ -580,7 +580,7 @@ class Panel:
                 return
             gone = host_resolve.clear_review_markers(timeline)
         except Exception as exc:  # noqa: BLE001
-            self.say(str(exc), "bad")
+            self.say(translate_log(str(exc)), "bad")
             return
         self.say(f"✓ {T['cleared']} {gone} {T['markers_word']}", "ok")
         self.var_status.set(rtl(f"{T['cleared']} {gone} {T['markers_word']}."))
@@ -664,7 +664,7 @@ class Panel:
         except Exception as exc:  # noqa: BLE001 - surfaced to the user verbatim
             self.var_project.set(T["none"])
             self.var_timeline.set(T["not_connected"])
-            self.say(str(exc), "bad")
+            self.say(translate_log(str(exc)), "bad")
             self.var_status.set(rtl(T["open_timeline"]))
             self.btn_run.configure(state="disabled", bg=Palette.disabled)
 

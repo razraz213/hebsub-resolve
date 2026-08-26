@@ -189,6 +189,23 @@ T = {
 # file names through untouched -- a translated log that invented a different
 # number would be worse than an English one.
 _LOG = [
+    # Connection failures. These arrive as str(exc), not through stdout, and
+    # one of them is the FIRST thing a new user sees -- an installer opens the
+    # panel before Resolve is running. An English wall of text there is the
+    # worst possible first impression of a Hebrew tool.
+    (r"^(?:host_resolve: )?Resolve is not reachable\. Either it is not "
+     r"running, or external scripting is disabled in Preferences > System > "
+     r"General > 'External scripting using'\.$",
+     "ריזולב לא זמינה. או שהיא לא פתוחה, או שסקריפטים חיצוניים "
+     "מכובים ב-Preferences > System > General > "
+     "'External scripting using' (צריך להיות Local)"),
+    (r"^(?:host_resolve: )?no project is open in Resolve$",
+     "לא פתוח פרויקט בריזולב"),
+    (r"^(?:host_resolve: )?no timeline is open in Resolve$",
+     "לא פתוח טיימליין בריזולב"),
+    (r"^(?:host_resolve: )?cannot import DaVinciResolveScript (.+)$",
+     "לא נמצאו מודולי הסקריפטים של ריזולב \1"),
+
     (r"^connected · (.+)$",
      "מחובר · \\1"),
     (r"^project '(.+)', timeline '(.+)'$",
