@@ -97,6 +97,18 @@ pip install -r requirements.txt
 python -m hebsub.ui.app
 ```
 
+That core set is **432 MB** and resolves on Windows, Linux and macOS. Three
+optional add-ons, each in its own file, because between them they are 2.5 GB:
+
+| File | Adds | Size | When |
+|---|---|---|---|
+| `requirements-gpu.txt` | CUDA for the ASR | ~2.0 GB | Windows/Linux **with an NVIDIA card**. These packages publish no macOS wheel at all |
+| `requirements-llm.txt` | `torch`, for the masked-LM pass | 535 MB | Only for `--llm-adapter masked_lm`, which is off by default and measured at 0.12pp |
+| `requirements-dev.txt` | `pytest`, `pysrt` | small | Running the test suite |
+
+Without the GPU file the ASR runs on CPU — slower, and correct. Verified from
+an empty virtualenv: core alone imports every module and passes 630 tests.
+
 Or from Resolve: **Workflow › Scripts › hebsub**.
 
 Enable scripting first, under **Preferences › System › General › External

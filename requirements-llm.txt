@@ -1,0 +1,20 @@
+# The optional masked-LM proofread pass:
+#
+#   --passes glossary,llm --llm-adapter masked_lm
+#
+#   pip install -r requirements-llm.txt
+#
+# 535 MB. Worth ~0.12pp WER (3.66% -> 3.54%), and on the test clip it produced
+# byte-identical output. The masked LM can only evaluate 50.7% of words --
+# Hebrew's inflected forms are not single tokens in its vocabulary -- and
+# across nine reels it fired twice. Measured, small, entirely opt-in: D37, D39.
+#
+# The CPU build is all this adapter needs. For a CUDA build of torch -- which
+# the ASR does NOT need, since it reaches the card through CTranslate2:
+#
+#   pip install --index-url https://download.pytorch.org/whl/cu130 torch==2.12.1
+#
+# D45 also measured that a 7B model does not fit beside Resolve on a 16 GB
+# card: the desktop holds ~6 GB before anything loads.
+
+torch==2.12.0

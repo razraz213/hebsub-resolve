@@ -1,0 +1,17 @@
+# CUDA acceleration for the ASR. Windows or Linux with an NVIDIA card.
+#
+#   pip install -r requirements-gpu.txt
+#
+# ~2.0 GB. Skip it to run the ASR on CPU -- everything still works, slower.
+#
+# These are not three separate features: faster-whisper cannot use the GPU
+# without them, and CTranslate2 resolves them by bare name via LoadLibrary,
+# so hebsub.engines.ivrit_local maps them in by full path first.
+#
+# There is deliberately no macOS entry. nvidia-cublas-cu12 publishes only
+# manylinux and win_amd64 wheels -- no macOS wheel, no sdist -- so a Mac
+# cannot install these at all. Nothing here is needed for correctness.
+
+nvidia-cublas-cu12==12.9.2.10
+nvidia-cudnn-cu12==9.24.0.43
+nvidia-cuda-nvrtc-cu12==12.9.86

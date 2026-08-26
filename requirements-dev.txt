@@ -1,0 +1,13 @@
+# Running the test suite:
+#
+#   pip install -r requirements.txt -r requirements-dev.txt
+#   python -m pytest
+#
+# 630 pass and 1 skips -- the skip is the corpus-dependent benchmark, whose
+# eval set is client work and is not in this repository.
+
+pytest==9.1.1
+
+# pysrt exists so `export` is validated by a parser it did not write (D5).
+# Nothing in src/ imports it.
+pysrt==1.1.2
