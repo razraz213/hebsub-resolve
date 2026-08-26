@@ -207,6 +207,25 @@ def selftest(data: Path) -> int:
         return f"{len(hebrew_lexicon())} entries"
     check("hebrew lexicon (transformers)", lexicon)
 
+    def hebrew_ui():
+        """Is the Hebrew layer in this bundle, and current?
+
+        A stale build shows English in the panel log and there is no other way
+        to tell from outside: the string table is inside a compressed PYZ, so
+        neither grep nor a byte scan can answer it. Translating a known line
+        can.
+        """
+        from hebsub.ui.hebrew import T, translate_log
+
+        probe = ("transcribe: CUDA is present but its runtime libraries are "
+                 "not (Library cublas64_12.dll is not found or cannot be "
+                 "loaded); retrying on CPU. Roughly 2.4x slower, same "
+                 "transcript.")
+        translated = translate_log(probe) != probe
+        return (f"{len(T)} strings, "
+                f"CPU-fallback notice {'translated' if translated else 'NOT translated'}")
+    check("hebrew ui", hebrew_ui)
+
     def resolve():
         from hebsub import host_resolve
         r = host_resolve.connect()
