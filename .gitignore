@@ -1,0 +1,51 @@
+# --- client media: NEVER commit -------------------------------------------
+# tests/fixtures holds ~1 GB of Raz's real client reels. They are client work,
+# they are far too large for git, and they are not ours to redistribute. The
+# hand-corrected references derived from them ARE committed (see below) --
+# those are small, text-only, and the whole point of the eval set.
+tests/fixtures/*.mp4
+tests/fixtures/*.mov
+tests/fixtures/*.mkv
+tests/fixtures/*.wav
+tests/fixtures/*.mp3
+tests/fixtures/*.m4a
+tests/fixtures/*.aac
+
+# --- regenerable pipeline artifacts ---------------------------------------
+# Every intermediate hits disk under work/ by design (CLAUDE.md rule 6), but
+# all of it is reproducible from the fixtures and the code.
+work/
+*.srt.report.json
+
+# Raz's own panel runs, dropped in the repo root for comparison. The .srt
+# pairs out of these are worth keeping -- they become corpora -- but they are
+# copied into tests/fixtures/references*/ deliberately, not from here, and the
+# rendered audio beside them is client work in the hundreds of megabytes.
+Subs Test*/
+
+# --- secrets ---------------------------------------------------------------
+.env
+*.key
+
+# --- python ----------------------------------------------------------------
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.venv/
+venv/
+
+# --- editors / OS ----------------------------------------------------------
+.vscode/
+.idea/
+Thumbs.db
+desktop.ini
+
+# --- deliberately NOT ignored ---------------------------------------------
+# bench.csv                      -- the history of that file is the story of
+#                                   whether the project is improving
+#                                   (CLAUDE.md, eval-protocol.md)
+# tests/fixtures/references/     -- the hand-corrected eval set
+# tests/fixtures/*.json          -- synthetic contract fixtures
+# glossary.txt                   -- measured, hand-filtered
+# Correct Subs all 9 reels.srt   -- the source the references were split from

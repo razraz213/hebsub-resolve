@@ -1,0 +1,96 @@
+# glossary.txt -- hebsub
+#
+# Built from measured ASR errors against a hand-corrected reference set.
+# Judaica vocabulary; replace it with your own domain's terms.
+# Format is D11: `wrong => right` for exact replacement, bare terms
+# for fuzzy protection (>= 0.82 similarity, tokens of length >= 3).
+#
+# ONLY entries whose left-hand side is not a normal Hebrew word are
+# listed. Of the 33 one-to-one errors measured, most were contextual
+# -- the ASR heard a real word, just the wrong one. Those are at the
+# bottom of this file, commented out, with the reason. Do not
+# uncomment them: a deterministic rule that rewrites every 'כל' to
+# 'קול' breaks far more than it fixes.
+#
+# Multi-word garble -- 'קידשנו במצוותיו' heard as 'כדשהם לצוטר' --
+# is also excluded: collapsing it would change word count and break
+# the timing contract (D31).
+
+# --- safe, observed mis-transcriptions ---------------------------
+האימא => האמא
+אשכנדים => אשכנזים
+מכבלים => מכוונים
+קכא => קכא'
+ושמאת => ושבעת
+בשומעי => בשומר
+הצליחות => הסליחות
+
+# --- protected vocabulary ----------------------------------------
+# Liturgical and place names. Fuzzy-matched, so near-misses snap back
+# to the correct spelling even when the exact error was not observed.
+#
+# A term is only listed if it actually occurs in the reference corpus.
+# Speculative entries are pure downside: they can never fix anything --
+# there is nothing there to correct -- but each one can still rewrite a
+# real word sitting one edit away. That is not hypothetical: תפילין
+# rewrote תפילון (a prayer booklet) into phylacteries before it was cut.
+קדיש
+טלית
+ציצית
+תהילים
+ברכון
+ברכונים
+סידור
+סליחות
+פיוט
+אזכרה
+כיפור
+שחרית
+מוסף
+מנחה
+ערבית
+נעילה
+שופר
+אלול
+עקדת
+המוריה
+נתב"ג
+חז"ל
+נחלאות
+אדס
+הרצליה
+אשכנזים
+ספרדים
+מצווה
+מצוות
+
+# --- REJECTED: contextual, not lexical ----------------------------
+# Each of these was really observed, and each left-hand side is a
+# perfectly good Hebrew word. They need context to resolve, which is
+# what the proofread llm/masked-LM pass is for (D31).
+# עיני => עיניי   (seen 2x)
+# הערים => ההרים   (seen 2x)
+# יבוא => יבא   (seen 2x)
+# אותה => אותו
+# אשר => ישר
+# מתפעלים => מתפללים
+# קשרה => כשרה
+# ה' => השם
+# מצווה => מצוות
+# כופף => חופף
+# שמים => עוצמים
+# אם => ואם
+# כל => קול
+# האור => העור
+# מאור => מעור
+# אישות => יישות
+# ולעלות => ולהעלות
+# אחד => אחת
+# ההוא => אהוב
+# וזו => זו
+# יהיו => יהיה
+# אחת => ואחת
+# כמה => קמעה
+# אהבות => האבות
+# כשאני => שאני
+# בשליחות => בסליחות

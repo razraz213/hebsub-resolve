@@ -1,0 +1,140 @@
+{
+  "meta": {
+    "source_file": "clip_30s.wav",
+    "duration": 30.0,
+    "language": "he",
+    "engine": "ivrit_local",
+    "engine_version": "whisper-large-v3-turbo-ct2-20250513",
+    "created_at": "2026-08-21T14:03:00Z",
+    "stages": [
+      "transcribe"
+    ],
+    "warnings": []
+  },
+  "segments": [
+    {
+      "id": 0,
+      "start": 1.24,
+      "end": 4.88,
+      "text": "אז בוא נדבר על משהו אחר",
+      "words": [
+        {
+          "wid": 0,
+          "w": "אז",
+          "start": 1.24,
+          "end": 1.39,
+          "conf": 0.98
+        },
+        {
+          "wid": 1,
+          "w": "בוא",
+          "start": 1.39,
+          "end": 1.61,
+          "conf": 0.94
+        },
+        {
+          "wid": 2,
+          "w": "נדבר",
+          "start": 1.61,
+          "end": 1.9,
+          "conf": 0.91
+        },
+        {
+          "wid": 3,
+          "w": "על",
+          "start": 1.9,
+          "end": 2.05,
+          "conf": 0.99
+        },
+        {
+          "wid": 4,
+          "w": "מה",
+          "start": 2.05,
+          "end": 2.2,
+          "conf": 0.97
+        },
+        {
+          "wid": 5,
+          "w": "שקרה",
+          "start": 2.2,
+          "end": 2.6,
+          "conf": 0.88
+        },
+        {
+          "wid": 6,
+          "w": "בקמפיין",
+          "start": 2.6,
+          "end": 3.4,
+          "conf": 0.76
+        },
+        {
+          "wid": 7,
+          "w": "האחרון.",
+          "start": 3.4,
+          "end": 4.88,
+          "conf": 0.93
+        }
+      ],
+      "speaker": null
+    },
+    {
+      "id": 1,
+      "start": 5.12,
+      "end": 7.64,
+      "text": "זה היה קמפיין של עשרים אחוז המרה",
+      "words": [
+        {
+          "wid": 8,
+          "w": "זה",
+          "start": 5.12,
+          "end": 5.3,
+          "conf": 0.96
+        },
+        {
+          "wid": 9,
+          "w": "היה",
+          "start": 5.3,
+          "end": 5.54,
+          "conf": 0.95
+        },
+        {
+          "wid": 10,
+          "w": "קמפיין",
+          "start": 5.54,
+          "end": 6.1,
+          "conf": 0.82
+        },
+        {
+          "wid": 11,
+          "w": "של",
+          "start": 6.1,
+          "end": 6.24,
+          "conf": 0.99
+        },
+        {
+          "wid": 12,
+          "w": "עשרים",
+          "start": 6.24,
+          "end": 6.7,
+          "conf": 0.71
+        },
+        {
+          "wid": 13,
+          "w": "אחוז",
+          "start": 6.7,
+          "end": 7.15,
+          "conf": 0.74
+        },
+        {
+          "wid": 14,
+          "w": "המרה",
+          "start": 7.15,
+          "end": 7.64,
+          "conf": 0.85
+        }
+      ],
+      "speaker": null
+    }
+  ],
+  "edits": []
+}

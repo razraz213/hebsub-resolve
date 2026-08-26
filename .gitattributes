@@ -1,0 +1,25 @@
+# LF everywhere, on every platform.
+#
+# This is not a style preference. docs/modules/export.md requires the emitted
+# .srt to use LF and not CRLF -- several subtitle parsers produce duplicate
+# blank lines on CRLF -- and export.py opens its output with newline="" to
+# guarantee it. If git normalised those files to CRLF on a Windows checkout,
+# the committed reference .srt files would stop matching what the writer
+# produces, and the mismatch would look like a bug in export.
+* text=auto eol=lf
+
+# Subtitle and transcript artifacts: never touched.
+*.srt   text eol=lf
+*.vtt   text eol=lf
+*.json  text eol=lf
+*.csv   text eol=lf
+
+# Media, if any ever slips past .gitignore, must not be line-ending mangled.
+*.mp4 binary
+*.mov binary
+*.mkv binary
+*.wav binary
+*.mp3 binary
+*.m4a binary
+*.aac binary
+*.png binary

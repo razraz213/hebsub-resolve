@@ -1,0 +1,45 @@
+# Exact pins only. No >= -- see CLAUDE.md, "Dependencies".
+# Install with the repo's Python:
+#   C:\Users\PC\AppData\Local\Python\pythoncore-3.14-64\python.exe -m pip install -r requirements.txt
+
+# --- runtime ---------------------------------------------------------------
+faster-whisper==1.2.1
+requests==2.34.2
+
+# CUDA runtime for CTranslate2. Not separate features -- faster-whisper cannot
+# use the GPU without them, and CTranslate2 resolves them by bare name via
+# LoadLibrary, so hebsub.engines.ivrit_local maps them in by full path first.
+# Drop these three to run the ASR on CPU.
+nvidia-cublas-cu12==12.9.2.10
+nvidia-cudnn-cu12==9.24.0.43
+nvidia-cuda-nvrtc-cu12==12.9.86
+
+# --- test only -------------------------------------------------------------
+pytest==9.1.1
+# pysrt exists so `export` is validated by a parser it did not write (D5).
+# Nothing in src/ imports it.
+pysrt==1.1.2
+
+# --- proofread llm pass (optional) -----------------------------------------
+# Only needed for `--passes glossary,llm --llm-adapter masked_lm`. The default
+# pass set is glossary-only, which needs neither. D31 amended CLAUDE.md's
+# refusal of transformers/torch for this module specifically.
+#
+# Worth ~0.12pp WER (3.66% -> 3.54%) for ~2 GB of dependency plus a model
+# download. Measured, small, and entirely opt-in -- see D37.
+transformers==5.15.1
+torch==2.12.0
+
+# The pin above is the CPU build, which is all the masked_lm adapter needs.
+# For a CUDA build -- required by anything that wants the GPU from torch, and
+# NOT required by the ASR, which reaches the card through CTranslate2:
+#
+#   pip install --index-url https://download.pytorch.org/whl/cu130 torch==2.12.1
+#
+# Verified on this machine (driver 610.74, CUDA 13.0, cp314). D45 also
+# measured that a 7B model does not fit beside Resolve on a 16 GB card: the
+# desktop holds ~6 GB before anything loads.
+
+# --- not yet needed --------------------------------------------------------
+# jiwer          -- pin when `bench` is first built
+# python-dotenv  -- pin when an engine that needs a key is first built
