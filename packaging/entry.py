@@ -52,8 +52,11 @@ def prepare() -> Path:
     """Wire the bundle into the environment the pipeline expects."""
     bundle = _bundle_dir()
 
-    # 1. bundled ffmpeg, discoverable by shutil.which
-    for candidate in (bundle / "ffmpeg", bundle):
+    # 1. bundled ffmpeg, discoverable by shutil.which.
+    #    Beside the exe first: the installer puts it at {app}\ffmpeg, which is
+    #    the exe's own folder, NOT the _internal folder _MEIPASS points at.
+    beside = Path(sys.executable).parent
+    for candidate in (beside / "ffmpeg", bundle / "ffmpeg", bundle, beside):
         if (candidate / "ffmpeg.exe").exists():
             os.environ["PATH"] = f"{candidate}{os.pathsep}{os.environ.get('PATH', '')}"
             break

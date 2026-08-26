@@ -26,18 +26,16 @@ datas, binaries, hiddenimports = [], [], []
 # An LGPL build, deliberately: the usual Windows "full" builds enable x264 and
 # x265 and are GPL, which would conflict with this project's MIT licence. The
 # licence text ships beside the binary, which LGPL requires.
-_ffmpeg = os.environ.get("HEBSUB_FFMPEG_DIR")
-if _ffmpeg and Path(_ffmpeg).is_dir():
-    for f in sorted(Path(_ffmpeg).iterdir()):
-        if f.suffix.lower() in {".exe", ".dll"}:
-            binaries.append((str(f), "ffmpeg"))
-        elif f.suffix.lower() == ".txt":
-            datas.append((str(f), "ffmpeg"))
-else:
-    raise SystemExit(
-        "HEBSUB_FFMPEG_DIR is not set or does not exist. The build needs an "
-        "LGPL ffmpeg to bundle -- see packaging/build.py."
-    )
+# ffmpeg is deliberately NOT listed here. Both `binaries` and `datas` end up
+# in PyInstaller's binary handling -- it reclassifies DLLs found in datas --
+# and that walks ffmpeg.exe's import table and hoists every dependent DLL to
+# the bundle root. The result was avcodec, avformat, avfilter and four more
+# sitting BOTH in ffmpeg/ and at the top level, byte-identical: 134 MB of
+# duplication in a 591 MB bundle, measured.
+#
+# ffmpeg.exe is a self-contained program that finds its DLLs beside itself,
+# not a library this app links against. So the installer copies it in
+# (see hebsub.iss), PyInstaller never sees it, and there is exactly one copy.
 
 # ctranslate2 and onnxruntime ship compiled DLLs beside their Python modules;
 # av carries a whole FFmpeg. Static analysis sees none of it.

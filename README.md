@@ -40,7 +40,7 @@ this repository.
 | Word accuracy | **95.3%** (4.69% WER) with the second opinion |
 | Card boundary F1 | 65.1% / 66.9% / 55.2% by corpus |
 | Automatic corrections | **6 words fixed, 0 broken** across all three corpora |
-| Speed | ~60 s per 15-minute timeline; ~155 s with the second opinion |
+| Transcription speed | **11.7× realtime** on an NVIDIA GPU, **4.9× on CPU** — measured on a real 17.7-minute timeline |
 | Cost per run | **Zero** — everything is local |
 | Tests | 631 |
 
@@ -88,7 +88,7 @@ Clicking a row moves Resolve's playhead to that word.
 
 ### Windows — one download, one click
 
-**[Download HebSub-4.0.0-Setup.exe](https://github.com/razraz213/hebsub-resolve/releases/latest)**  (178 MB)
+**[Download HebSub-4.0.0-Setup.exe](https://github.com/razraz213/hebsub-resolve/releases/latest)**  (136 MB)
 
 Run it. That is the whole install. It brings its own Python and its own
 ffmpeg, and it adds **HebSub** to Resolve's *Workflow › Scripts* menu for you.
@@ -101,6 +101,14 @@ step no installer can perform.
 
 The speech model (~1.5 GB) downloads the first time you transcribe, into your
 HuggingFace cache, where a reinstall reuses it.
+
+**The installer runs the ASR on CPU.** It does not ship the CUDA runtime —
+those packages are 2.0 GB and have no macOS build at all. Measured on a real
+17.7-minute timeline: **219 s on CPU against 91 s on the GPU**, so about 2.4×
+slower, and 4.9× faster than realtime either way. A 15-minute timeline
+transcribes in roughly **3 minutes**. Word output was identical to within one
+word (1507 against 1506), so int8 costs nothing in accuracy. For the GPU path,
+install from source and add `requirements-gpu.txt`.
 
 If the panel does not open, **Start Menu › HebSub › HebSub — check
 installation** writes a report to `%LOCALAPPDATA%\HebSub\selftest.txt` naming
@@ -131,8 +139,10 @@ optional add-ons, each in its own file, because between them they are 2.5 GB:
 | `requirements-llm.txt` | `torch`, for the masked-LM pass | 535 MB | Only for `--llm-adapter masked_lm`, which is off by default and measured at 0.12pp |
 | `requirements-dev.txt` | `pytest`, `pysrt` | small | Running the test suite |
 
-Without the GPU file the ASR runs on CPU — slower, and correct. Verified from
-an empty virtualenv: core alone imports every module and passes 630 tests.
+Without the GPU file the ASR runs on CPU: measured at 4.9× realtime against
+11.7× with CUDA, on the same 17.7-minute timeline. Slower, and correct — the
+transcript differed by one word out of 1507. Verified from an empty
+virtualenv: core alone imports every module and passes 630 tests.
 
 Or from Resolve: **Workflow › Scripts › hebsub**.
 

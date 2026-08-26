@@ -96,9 +96,9 @@ def stage_ffmpeg(out: Path) -> Path:
     return binaries
 
 
-def stage_freeze(python: Path, ffmpeg: Path, out: Path) -> Path:
+def stage_freeze(python: Path, out: Path) -> Path:
     print("3. PyInstaller          freezing")
-    env = dict(os.environ, HEBSUB_FFMPEG_DIR=str(ffmpeg))
+    env = dict(os.environ)
     run([python, "-m", "PyInstaller", "--noconfirm",
          "--distpath", out / "dist", "--workpath", out / "build",
          HERE / "hebsub.spec"], cwd=HERE, env=env)
@@ -109,7 +109,7 @@ def stage_freeze(python: Path, ffmpeg: Path, out: Path) -> Path:
     return app
 
 
-def stage_installer(app: Path, out: Path) -> Path:
+def stage_installer(app: Path, ffmpeg: Path, out: Path) -> Path:
     iscc = next((p for p in ISCC_CANDIDATES if p.exists()), None)
     if iscc is None:
         raise SystemExit(
@@ -117,8 +117,8 @@ def stage_installer(app: Path, out: Path) -> Path:
             "    winget install --id JRSoftware.InnoSetup"
         )
     print("4. Inno Setup           compiling")
-    run([iscc, f"/DHebSubSrc={app}", f"/DHebSubVersion={VERSION}",
-         f"/O{out}", HERE / "hebsub.iss"])
+    run([iscc, f"/DHebSubSrc={app}", f"/DHebSubFfmpeg={ffmpeg}",
+         f"/DHebSubVersion={VERSION}", f"/O{out}", HERE / "hebsub.iss"])
     setup = out / f"HebSub-{VERSION}-Setup.exe"
     if not setup.exists():
         raise SystemExit(f"Inno Setup produced no installer at {setup}")
@@ -139,7 +139,7 @@ def main() -> int:
 
     python = stage_venv(out)
     ffmpeg = stage_ffmpeg(out)
-    app = stage_freeze(python, ffmpeg, out)
+    app = stage_freeze(python, out)
 
     size = sum(f.stat().st_size for f in app.rglob("*") if f.is_file())
     print(f"\n   bundle: {app}  ({size / 1e6:.0f} MB)")
@@ -147,7 +147,7 @@ def main() -> int:
     if args.skip_installer:
         return 0
 
-    setup = stage_installer(app, out)
+    setup = stage_installer(app, ffmpeg, out)
     print(f"\ndone: {setup}  ({setup.stat().st_size / 1e6:.0f} MB)")
     print("\nTest it with:")
     print(f"   {setup}")

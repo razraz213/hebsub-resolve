@@ -19,6 +19,9 @@
 #ifndef HebSubSrc
   #define HebSubSrc "..\..\dist\HebSub"
 #endif
+#ifndef HebSubFfmpeg
+  #define HebSubFfmpeg "..\..\hebsub-build\ffmpeg\bin"
+#endif
 #ifndef HebSubVersion
   #define HebSubVersion "4.0.0"
 #endif
@@ -62,6 +65,10 @@ Name: "resolvemenu"; Description: "Add HebSub to DaVinci Resolve's Workflow > Sc
 
 [Files]
 Source: "{#HebSubSrc}\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+; ffmpeg is copied here rather than frozen into the bundle: PyInstaller walks
+; ffmpeg.exe's imports and hoists its DLLs to the bundle root, duplicating
+; 134 MB. entry.py looks for it beside HebSub.exe.
+Source: "{#HebSubFfmpeg}\*"; DestDir: "{app}\ffmpeg"; Flags: ignoreversion
 
 [Icons]
 Name: "{group}\{#HebSubName}"; Filename: "{app}\HebSub.exe"
