@@ -86,38 +86,15 @@ Clicking a row moves Resolve's playhead to that word.
 
 ## Install
 
-### Windows — one download, one click
+### Windows installer
 
-**[Download HebSub-4.0.0-Setup.exe](https://github.com/razraz213/hebsub-resolve/releases/latest)**  (136 MB)
+There is a `packaging/` build that produces a single `HebSub-Setup.exe`, and it
+works — but it is **not** offered as a download yet, because it cannot ship the
+CUDA runtime and so transcribes on CPU at 4.9× realtime instead of 11.7×.
+Build it yourself with `python packaging/build.py` if the source install is not
+practical for you. A GPU variant is the obvious next step.
 
-Run it. That is the whole install. It brings its own Python and its own
-ffmpeg, and it adds **HebSub** to Resolve's *Workflow › Scripts* menu for you.
-Nothing needs to be on `PATH` and nothing needs administrator rights — it
-installs per-user.
-
-Then, once, in Resolve: **Preferences › System › General › External scripting
-using → Local**. Resolve refuses all scripting until you do, and it is the one
-step no installer can perform.
-
-The speech model (~1.5 GB) downloads the first time you transcribe, into your
-HuggingFace cache, where a reinstall reuses it.
-
-**The installer runs the ASR on CPU.** It does not ship the CUDA runtime —
-those packages are 2.0 GB and have no macOS build at all. Measured on a real
-17.7-minute timeline: **219 s on CPU against 91 s on the GPU**, so about 2.4×
-slower, and 4.9× faster than realtime either way. A 15-minute timeline
-transcribes in roughly **3 minutes**. Word output was identical to within one
-word (1507 against 1506), so int8 costs nothing in accuracy. For the GPU path,
-install from source and add `requirements-gpu.txt`.
-
-If the panel does not open, **Start Menu › HebSub › HebSub — check
-installation** writes a report to `%LOCALAPPDATA%\HebSub\selftest.txt` naming
-the piece that failed.
-
-Windows will show a blue "Windows protected your PC" notice, because the
-installer is not code-signed yet — **More info › Run anyway**.
-
-### From source — Windows, macOS, Linux
+### From source
 
 Requires Python 3.11+, `ffmpeg` on `PATH`, and DaVinci Resolve **Studio** —
 scripting is not available in the free edition.
